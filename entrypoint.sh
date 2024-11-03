@@ -33,12 +33,16 @@ readonly ENV_VAR_NFS_PORT_STATD_IN='NFS_PORT_STATD_IN'
 readonly ENV_VAR_NFS_PORT_STATD_OUT='NFS_PORT_STATD_OUT'
 readonly ENV_VAR_NFS_VERSION='NFS_VERSION'
 readonly ENV_VAR_NFS_LOG_LEVEL='NFS_LOG_LEVEL'
+readonly ENV_VAR_SSH_USERNAME='SSH_USERNAME'
+readonly ENV_VAR_SSH_PASSWORD='SSH_PASSWORD'
 
 readonly DEFAULT_NFS_PORT=2049
 readonly DEFAULT_NFS_PORT_MOUNTD=32767
 readonly DEFAULT_NFS_PORT_STATD_IN=32765
 readonly DEFAULT_NFS_PORT_STATD_OUT=32766
 readonly DEFAULT_NFS_VERSION='4.2'
+readonly DEFAULT_SSH_USERNAME='nfs'
+readonly DEFAULT_SSH_PASSWORD='insecure'
 
 readonly PATH_BIN_EXPORTFS='/usr/sbin/exportfs'
 readonly PATH_BIN_IDMAPD='/usr/sbin/rpc.idmapd'
@@ -869,10 +873,28 @@ hangout() {
   while :; do sleep 2073600 & wait; done
 }
 
+ssh() {
+
+  log_header 'SSH server startup ...'
+
+  log 'Generating SSH host key'
+  ssh-keygen -A 1> /dev/null 2> /dev/null
+
+  log 'Setup user account'
+  local -r ssh_username="${!ENV_VAR_SSH_USERNAME:-$DEFAULT_SSH_USERNAME}"
+  local -r ssh_password="${!ENV_VAR_SSH_PASSWORD:-$DEFAULT_SSH_PASSWORD}"
+  adduser -h /home/$ssh_username -s /bin/sh -D $ssh_username 
+  echo -n "$ssh_username:$ssh_password" | chpasswd 1> /dev/null 2> /dev/null
+
+  log 'Start sshd'
+  /usr/sbin/sshd -e
+}
+
 main() {
 
   init
   boot
+  ssh
   summarize
   hangout
 }
