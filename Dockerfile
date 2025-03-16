@@ -3,7 +3,7 @@ ARG BUILD_FROM=alpine:latest
 FROM $BUILD_FROM
 LABEL maintainer="Lukas Korl <hello@lukaskorl.com>"
 
-RUN apk --update --no-cache add bash nfs-utils openssh && \
+RUN apk --update --no-cache add bash nfs-utils openssh libcap-utils && \
     # remove the default config files
     rm -v /etc/idmapd.conf /etc/exports
 
